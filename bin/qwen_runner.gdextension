@@ -1,0 +1,12 @@
+[configuration]
+entry_symbol = "qwen_library_init"
+compatibility_minimum = "4.5"
+reloadable = false
+
+[libraries]
+linux.x86_64 = "res://bin/libqwen_runner.linux.x86_64.so"
+linux.arm64 = "res://bin/libqwen_runner.linux.arm64.so"
+windows.x86_64 = "res://bin/qwen_runner.windows.x86_64.dll"
+macos.arm64 = "res://bin/libqwen_runner.macos.arm64.dylib"
+macos.x86_64 = "res://bin/libqwen_runner.macos.x86_64.dylib"
+ios = "res://bin/libqwen_runner.ios.xcframework"

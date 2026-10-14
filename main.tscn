@@ -1,0 +1,129 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/main.gd" id="1_main"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_panel"]
+bg_color = Color(0.075, 0.12, 0.105, 1)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_left = 12
+corner_radius_bottom_right = 12
+content_margin_left = 16.0
+content_margin_top = 16.0
+content_margin_right = 16.0
+content_margin_bottom = 16.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_button"]
+bg_color = Color(0.15, 0.26, 0.21, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_left = 10
+corner_radius_bottom_right = 10
+
+[sub_resource type="Theme" id="Theme_main"]
+default_font_size = 18
+Button/styles/normal = SubResource("StyleBox_button")
+
+[node name="QwenDemo" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = SubResource("Theme_main")
+script = ExtResource("1_main")
+
+[node name="SafeMargin" type="MarginContainer" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 20
+
+[node name="Scroll" type="ScrollContainer" parent="SafeMargin"]
+layout_mode = 2
+follow_focus = true
+horizontal_scroll_mode = 0
+
+[node name="Stack" type="VBoxContainer" parent="SafeMargin/Scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 16
+
+[node name="Title" type="Label" parent="SafeMargin/Scroll/Stack"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+text = "Qwen 本地对话"
+autowrap_mode = 3
+
+[node name="Model" type="Label" parent="SafeMargin/Scroll/Stack"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.62, 0.72, 0.67, 1)
+theme_override_font_sizes/font_size = 14
+text = "Qwen3.5-0.8B · Q4_0 · 单轮问答\n手动放入 models/Qwen3.5-0.8B-Q4_0.gguf"
+autowrap_mode = 3
+
+[node name="Status" type="Label" parent="SafeMargin/Scroll/Stack"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.6, 0.85, 0.73, 1)
+theme_override_font_sizes/font_size = 15
+text = "正在检查原生扩展…"
+autowrap_mode = 3
+
+[node name="ReplyPanel" type="PanelContainer" parent="SafeMargin/Scroll/Stack"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_styles/panel = SubResource("StyleBox_panel")
+
+[node name="Reply" type="RichTextLabel" parent="SafeMargin/Scroll/Stack/ReplyPanel"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 290)
+layout_mode = 2
+theme_override_constants/line_separation = 5
+bbcode_enabled = false
+scroll_following = true
+selection_enabled = true
+
+[node name="ReplyHint" type="Label" parent="SafeMargin/Scroll/Stack"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.62, 0.72, 0.67, 1)
+theme_override_font_sizes/font_size = 13
+text = "生成完成后，完整回复显示在这里。模型可能出错，请核实重要信息。"
+autowrap_mode = 3
+
+[node name="Prompt" type="TextEdit" parent="SafeMargin/Scroll/Stack"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 112)
+layout_mode = 2
+placeholder_text = "输入问题，例如：用两句话介绍你自己。"
+wrap_mode = 1
+tab_input_mode = false
+
+[node name="Actions" type="HBoxContainer" parent="SafeMargin/Scroll/Stack"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Send" type="Button" parent="SafeMargin/Scroll/Stack/Actions"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+size_flags_horizontal = 3
+disabled = true
+text = "发送"
+
+[node name="Cancel" type="Button" parent="SafeMargin/Scroll/Stack/Actions"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(100, 50)
+layout_mode = 2
+disabled = true
+text = "取消"
