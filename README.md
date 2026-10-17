@@ -21,6 +21,7 @@ models/Qwen3.5-0.8B-Q4_0.gguf
 ```
 
 - GGUF 不纳入 Git；项目不提供模型下载或校验脚本。
+- 文件名必须与上述路径完全一致；下载文件若带有 `_un` 等后缀，先另存为 `Qwen3.5-0.8B-Q4_0.gguf`，否则导出预设不会打包该模型。
 - 只做文字推理，无需 mmproj。
 - 导出包需包含模型。首次启动复制到应用沙盒，再由原生代码加载；需预留模型副本空间。
 - 替换已导出应用中的模型后，清除旧应用数据或重装，避免继续使用沙盒旧副本。
@@ -55,6 +56,13 @@ python3 scripts/build.py --ios
 - 导出 Xcode 工程，用 Xcode 配置签名，连接 iPhone 构建运行。
 - Linux / Windows 不能完成这个 Apple 构建和签名步骤。
 
+### iPhone 停在启动画面
+
+- 若 Xcode 控制台出现 `symbol not found in flat namespace '_qwen_library_init'`，检查 `bin/libqwen_runner.ios.xcframework` 是否已生成，并在编译后重新从 Godot 导出 Xcode 工程。
+- 删除 Xcode `Other Linker Flags` 中的 `-Wl,-U,_qwen_library_init`；这个参数允许缺少原生入口的程序通过链接，随后会在手机启动时崩溃。
+- 确认 Xcode Scheme 的 Build / Run 引用当前工程中的 `QwenDemo` target；本次也修正了导出 Scheme 中不匹配的 target 引用。
+- 正常启动后，控制台会输出 `[QwenDemo] Main scene ready`，随后出现 `Model state: loading` 和 `Model state: ready`。首次启动还需把约 484 MiB 模型复制到沙盒，界面会显示进度。
+
 ## 范围
 
 - 单次输入、单次回复；不保存对话，不执行模型生成的指令。
@@ -74,4 +82,6 @@ python3 scripts/build.py --ios
 
 - Linux：原生编译、真实 GGUF 推理、Godot 非流式完整回复通过。
 - 自动测试：24 项 UI、21 项 Godot 原生联调、UTF-8/模板、20 次取消及加载/退出生命周期通过。
-- Windows / iOS：提供构建配置，尚未实际编译；iPhone 真机未测。
+- macOS（2026-10-17）：原生编译、UTF-8/模板测试、26 项 UI 检查、21 项原生联调通过。
+- iOS（2026-10-17）：真机 arm64、模拟器 arm64 / x86_64 原生库编译及 Xcode 签名构建通过；iPhone XS Max（iOS 18.7.10）已安装，用户确认启动后显示「模型已就绪」。真机问答由用户继续验证。
+- Windows：提供构建配置，尚未实际编译。

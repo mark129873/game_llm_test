@@ -31,6 +31,7 @@ var _generation_started_msec := 0
 
 
 func _ready() -> void:
+	print("[QwenDemo] Main scene ready")
 	_send_button.pressed.connect(_on_send_pressed)
 	_cancel_button.pressed.connect(_on_cancel_pressed)
 	_prompt_edit.text_changed.connect(_refresh_controls)
@@ -73,6 +74,7 @@ func _handle_event(event: Dictionary) -> void:
 	match str(event.get("type", "")):
 		"state":
 			_state = str(event.get("text", _state))
+			print("[QwenDemo] Model state: ", _state)
 			if _state in ["ready", "unloaded", "error"]:
 				_request_pending = false
 		"token":
@@ -93,6 +95,7 @@ func _handle_event(event: Dictionary) -> void:
 			_reply = ""
 			_output.clear()
 			_last_error = str(event.get("text", "未知原生错误"))
+			printerr("[QwenDemo] ", _last_error)
 			_cancel_pending = false
 			_request_pending = false
 			_output_hint.text = "发生错误 · 请查看上方状态"
@@ -237,6 +240,7 @@ func _is_busy() -> bool:
 
 
 func _show_error(message: String) -> void:
+	printerr("[QwenDemo] ", message)
 	_last_error = message
 	_refresh_controls()
 

@@ -49,14 +49,20 @@ def main():
 
     # A command-line-tools-only installation has no iPhoneOS SDK.
     run("xcodebuild", "-version")
-    run("xcrun", "--sdk", "iphoneos", "--show-sdk-path")
-    run("xcrun", "--sdk", "iphonesimulator", "--show-sdk-path")
+    # Nested CMake projects can reuse the cached sysroot verbatim. Pass an
+    # absolute SDK path so Clang never receives the bare name "iphoneos".
+    sdk_paths = {
+        sdk: subprocess.check_output(
+            ["xcrun", "--sdk", sdk, "--show-sdk-path"], text=True, cwd=ROOT
+        ).strip()
+        for sdk in ("iphoneos", "iphonesimulator")
+    }
     merged = {}
     for label, sdk, arch in (("device", "iphoneos", "arm64"),
                              ("sim-arm64", "iphonesimulator", "arm64"),
                              ("sim-x86_64", "iphonesimulator", "x86_64")):
         directory = ROOT / "build" / f"ios-{label}"
-        build(directory, ("-DCMAKE_SYSTEM_NAME=iOS", f"-DCMAKE_OSX_SYSROOT={sdk}",
+        build(directory, ("-DCMAKE_SYSTEM_NAME=iOS", f"-DCMAKE_OSX_SYSROOT={sdk_paths[sdk]}",
                           f"-DCMAKE_OSX_ARCHITECTURES={arch}", f"-DCMAKE_SYSTEM_PROCESSOR={arch}",
                           "-DCMAKE_OSX_DEPLOYMENT_TARGET=16.4", "-DQWEN_IOS_STATIC=ON",
                           "-DQWEN_BUILD_TESTS=OFF", "-DCMAKE_XCODE_ATTRIBUTE_CODE_SIGNING_ALLOWED=NO"))
