@@ -16,6 +16,17 @@ def run(*args):
     subprocess.run(command, cwd=ROOT, check=True)
 
 
+def verify_apple_archive(path, arch):
+    """Check the archive slice and exported static GDExtension entry point."""
+    run("/usr/bin/lipo", "-verify_arch", arch, path)
+    command = ["xcrun", "nm", "-arch", arch, "-gU", str(path)]
+    print("+", " ".join(command), flush=True)
+    result = subprocess.run(command, cwd=ROOT, check=True, text=True, capture_output=True)
+    if not any(line.split() and line.split()[-1] == "_qwen_library_init"
+               for line in result.stdout.splitlines()):
+        raise SystemExit(f"Missing defined qwen_library_init entry point in {path} ({arch})")
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--ios", action="store_true", help="Mac/Xcode only: device + simulator XCFramework")
@@ -32,6 +43,8 @@ def main():
     (ROOT / "build").mkdir(exist_ok=True)
     (ROOT / "build" / ".gdignore").touch()
     cmake = args.cmake
+    if not shutil.which(cmake):
+        raise SystemExit("CMake 3.24+ was not found. Install CMake or pass --cmake /path/to/cmake.")
     generator = ["-G", "Ninja"] if shutil.which("ninja") else []
 
     def build(directory, extra=()):
@@ -71,9 +84,12 @@ def main():
             raise SystemExit(f"Incomplete static-library manifest: {directory}")
         output = directory / "libqwen_runner.a"
         run("/usr/bin/libtool", "-static", "-o", output, *archives)
+        verify_apple_archive(output, arch)
         merged[label] = output
     simulator = ROOT / "build" / "libqwen_runner.simulator.a"
     run("/usr/bin/lipo", "-create", merged["sim-arm64"], merged["sim-x86_64"], "-output", simulator)
+    for arch in ("arm64", "x86_64"):
+        verify_apple_archive(simulator, arch)
     output = ROOT / "bin" / "libqwen_runner.ios.xcframework"
     temporary = ROOT / "build" / "libqwen_runner.ios.xcframework"
     if temporary.exists():
@@ -82,8 +98,10 @@ def main():
     if output.exists():
         shutil.rmtree(output)
     shutil.move(temporary, output)
+    (ROOT / "build" / "ios").mkdir(exist_ok=True)
     print("Built iOS XCFramework. Set your team ID and bundle ID in Godot's iOS export preset.")
-    print("Export the Xcode project, then sign and test on a real iPhone. This command does not do either.")
+    print("Export build/ios/QwenDemo.xcodeproj, then sign and test on a real iPhone.")
+    print("This command only builds the native XCFramework; it does not export, sign, or test the app.")
 
 
 if __name__ == "__main__":

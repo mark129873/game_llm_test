@@ -1,6 +1,7 @@
 #include "qwen_core.hpp"
 #include "llama.h"
 #include <algorithm>
+#include <chrono>
 #include <memory>
 #include <stdexcept>
 #include <utility>
@@ -10,7 +11,13 @@ namespace {
 std::once_flag backend_once;
 bool abort_inference(void *data) { return static_cast<std::atomic<bool> *>(data)->load(); }
 bool load_progress(float, void *data) { return !abort_inference(data); }
-using Batch = std::unique_ptr<llama_batch_ext, decltype(&llama_batch_ext_free)>;
+struct Batch {
+    llama_batch value = llama_batch_init(Runner::batch_size, 0, 1);
+    ~Batch() { llama_batch_free(value); }
+    Batch() = default;
+    Batch(const Batch &) = delete;
+    Batch &operator=(const Batch &) = delete;
+};
 using Sampler = std::unique_ptr<llama_sampler, decltype(&llama_sampler_free)>;
 }
 
@@ -152,11 +159,11 @@ void Runner::do_load(const std::string &path) {
     char architecture[64] = {};
     llama_model_meta_val_str(model_, "general.architecture", architecture, sizeof(architecture));
     if (std::string(architecture) != "qwen35") {
-        throw std::runtime_error("This demo requires Qwen3.5-0.8B-Q4_0.gguf (qwen35 architecture).");
+        throw std::runtime_error("This demo requires a Qwen3.5 or Bonsai text GGUF with qwen35 architecture.");
     }
     const auto count = llama_model_n_params(model_);
-    if (count < 600000000ULL || count > 1100000000ULL) {
-        throw std::runtime_error("The model size is not Qwen3.5-0.8B; use the specified 0.8B GGUF.");
+    if (count < 600000000ULL || count > 2500000000ULL) {
+        throw std::runtime_error("Model size is outside this CPU demo range (0.6–2.5 billion parameters).");
     }
     auto context_params = llama_context_default_params();
     context_params.n_ctx = context_size;
@@ -192,37 +199,49 @@ void Runner::do_generate(const std::string &prompt) {
     const int actual = llama_tokenize(vocab, formatted.data(), static_cast<int32_t>(formatted.size()), tokens.data(), required, false, true);
     if (actual != required) throw std::runtime_error("Prompt tokenization returned an unexpected length.");
     llama_memory_clear(llama_get_memory(context_), true);
-    Batch batch(llama_batch_ext_init(context_), &llama_batch_ext_free);
+    Batch batch;
     Sampler sampler(llama_sampler_chain_init(llama_sampler_chain_default_params()), &llama_sampler_free);
-    if (!batch || !sampler) throw std::runtime_error("Could not allocate the inference batch or sampler.");
+    if (!batch.value.token || !sampler) throw std::runtime_error("Could not allocate the inference batch or sampler.");
     // Qwen recommends sampling for non-thinking mode; deterministic seed aids demo tests.
     llama_sampler_chain_add(sampler.get(), llama_sampler_init_top_k(20));
     llama_sampler_chain_add(sampler.get(), llama_sampler_init_top_p(0.8f, 1));
     llama_sampler_chain_add(sampler.get(), llama_sampler_init_temp(0.7f));
     llama_sampler_chain_add(sampler.get(), llama_sampler_init_dist(42));
-    auto decode = [&](const llama_token *input, int count, int position, bool logits) {
-        llama_batch_ext_clear(batch.get());
+    int decode_tokens = 0;
+    double decode_ms = 0.0;
+    auto decode = [&](const llama_token *input, int count, int position, bool logits, bool measure) {
+        auto &value = batch.value;
+        value.n_tokens = count;
         for (int i = 0; i < count; ++i) {
-            const int idx = llama_batch_ext_add_token(batch.get(), 0, input[i]);
-            const llama_pos pos = position + i;
-            if (idx < 0 || !llama_batch_ext_set_pos(batch.get(), idx, &pos)) {
-                throw std::runtime_error("Could not prepare inference batch.");
-            }
+            value.token[i] = input[i];
+            value.pos[i] = position + i;
+            value.n_seq_id[i] = 1;
+            value.seq_id[i][0] = 0;
+            value.logits[i] = logits && i == count - 1;
         }
-        llama_batch_ext_set_output_logits(batch.get(), count - 1, logits);
-        const int result = llama_process(context_, LLAMA_PROCESS_TYPE_DECODE, batch.get());
+        // Only single-token generation decode plus synchronization is timed.
+        // Batch preparation, prefill, sampling and text conversion are excluded.
+        const auto start = std::chrono::steady_clock::now();
+        const int result = llama_decode(context_, value);
+        llama_synchronize(context_);
+        const auto end = std::chrono::steady_clock::now();
         if (result && !cancelled_) throw std::runtime_error("Native model decode failed (code " + std::to_string(result) + ").");
-        return result == 0 && !cancelled_;
+        if (result != 0 || cancelled_) return false;
+        if (measure) {
+            ++decode_tokens;
+            decode_ms += std::chrono::duration<double, std::milli>(end - start).count();
+        }
+        return true;
     };
     int position = 0;
     while (position < required && !cancelled_) {
         const int count = std::min(batch_size, required - position);
-        if (!decode(tokens.data() + position, count, position, position + count == required)) break;
+        if (!decode(tokens.data() + position, count, position, position + count == required, false)) break;
         position += count;
     }
     std::string pending;
     int generated = 0;
-    for (; generated < output_limit && !cancelled_; ++generated) {
+    while (generated < output_limit && !cancelled_) {
         const auto token = llama_sampler_sample(sampler.get(), context_, -1);
         if (llama_vocab_is_eog(vocab, token)) break;
         char buffer[256];
@@ -235,13 +254,16 @@ void Runner::do_generate(const std::string &prompt) {
         } else pending.append(buffer, length);
         auto piece = take_utf8(pending);
         if (!piece.empty()) emit({"token", std::move(piece), false});
-        if (generated + 1 == output_limit) break;
-        if (!decode(&token, 1, position, true)) break;
+        ++generated; // Counts non-EOG output, including the last token at the cap.
+        if (generated == output_limit) break;
+        if (!decode(&token, 1, position, true, true)) break;
         ++position;
     }
     auto tail = take_utf8(pending, true);
     if (!tail.empty()) emit({"token", std::move(tail), false});
-    emit({"done", "", cancelled_.load()});
+    const bool cancelled = cancelled_.load();
+    emit({"done", "", cancelled, cancelled ? 0 : decode_tokens,
+          cancelled ? 0.0 : decode_ms, generated});
     finish("ready");
 }
 } // namespace qwen

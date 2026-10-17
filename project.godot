@@ -2,10 +2,11 @@
 config_version=5
 
 [application]
-config/name="Qwen 本地对话 Demo"
+config/name="Qwen · Bonsai 本地评测"
+config/icon="res://icon.svg"
 run/main_scene="res://main.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
-config/description="Godot + llama.cpp standalone offline Qwen3.5-0.8B demo"
+config/description="Godot + llama.cpp offline Qwen / Bonsai CPU benchmark"
 
 [display]
 window/size/viewport_width=440

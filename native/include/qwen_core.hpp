@@ -16,6 +16,11 @@ struct Event {
     std::string type;
     std::string text;
     bool cancelled = false;
+    // Meaningful on successful done only; cancelled/error throughput is invalid.
+    // decode counts successful single-token llama_decode + synchronize calls.
+    int decode_tokens = 0;
+    double decode_ms = 0.0;
+    int output_tokens = 0; // Non-EOG sampled tokens; final capped token is not decoded.
 };
 
 // Public calls are non-blocking, except destruction, which cancels and joins.

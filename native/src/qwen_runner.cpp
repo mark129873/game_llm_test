@@ -29,6 +29,9 @@ Array QwenRunner::poll_events() {
         item["type"] = String::utf8(event.type.c_str());
         item["text"] = String::utf8(event.text.c_str(), static_cast<int64_t>(event.text.size()));
         item["cancelled"] = event.cancelled;
+        item["decode_tokens"] = event.decode_tokens;
+        item["decode_ms"] = event.decode_ms;
+        item["output_tokens"] = event.output_tokens;
         result.append(item);
     }
     return result;

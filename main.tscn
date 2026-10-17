@@ -61,14 +61,30 @@ theme_override_constants/separation = 16
 [node name="Title" type="Label" parent="SafeMargin/Scroll/Stack"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 28
-text = "Qwen 本地对话"
+text = "双模型 CPU 测速"
 autowrap_mode = 3
 
 [node name="Model" type="Label" parent="SafeMargin/Scroll/Stack"]
+unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.62, 0.72, 0.67, 1)
 theme_override_font_sizes/font_size = 14
 text = "Qwen3.5-0.8B · Q4_0 · 单轮问答\n手动放入 models/Qwen3.5-0.8B-Q4_0.gguf"
+autowrap_mode = 3
+
+[node name="ModelSelector" type="OptionButton" parent="SafeMargin/Scroll/Stack"]
+unique_name_in_owner = true
+layout_mode = 2
+fit_to_longest_item = false
+
+[node name="LoadModel" type="Button" parent="SafeMargin/Scroll/Stack"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "加载 / 重试所选模型"
+
+[node name="Metrics" type="Label" parent="SafeMargin/Scroll/Stack"]
+unique_name_in_owner = true
+layout_mode = 2
 autowrap_mode = 3
 
 [node name="Status" type="Label" parent="SafeMargin/Scroll/Stack"]
