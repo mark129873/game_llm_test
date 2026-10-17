@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="236" viewBox="19 32 220 203">
+<!-- 原创首页成就候选：胖金杯、短底座；与现有青灰菜单图标共用深色轮廓。 -->
+<g stroke="#262b29" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M83 150 L67 210 Q65 215 71 214 L89 207 L102 220 Q107 224 108 217 L119 165Z" fill="#b95440" stroke-width="7"/>
+  <path d="M160 147 L191 205 Q194 211 188 211 L170 208 L157 222 Q152 226 150 218 L134 166Z" fill="#be5b42" stroke-width="7"/>
+  <path d="M83 162 L78 197 L92 189 L102 203 L108 172Z" fill="#e3855b" stroke="none"/>
+  <path d="M155 165 L177 198 L168 195 L157 208 L147 174Z" fill="#df7e53" stroke="none"/>
+  <path d="M78 57 Q53 46 35 56 Q21 64 28 88 Q38 118 78 125 L84 103 Q57 102 49 83 Q46 76 56 76 L78 82Z" fill="#d0a052" stroke-width="8"/>
+  <path d="M177 57 Q202 46 221 56 Q235 65 226 89 Q216 119 175 126 L169 104 Q197 102 206 83 Q208 76 198 76 L176 82Z" fill="#c59649" stroke-width="8"/>
+  <path d="M35 65 Q42 60 54 62 M204 62 Q214 62 218 67" fill="none" stroke="#f8dda0" stroke-width="6"/>
+  <path d="M71 51 Q121 41 185 52 L181 89 Q177 135 143 145 L143 174 L163 182 L163 198 L94 198 L94 182 L115 173 L115 145 Q78 136 74 94Z" fill="#b7893e" stroke-width="8"/>
+  <path d="M72 44 Q123 35 184 46 L179 83 Q174 125 141 138 L139 173 L115 172 L114 138 Q81 127 77 87Z" fill="#e2b45c" stroke-width="8"/>
+  <path d="M88 56 Q110 51 130 52 L124 132 Q97 121 93 97Z" fill="#f3d389" stroke="none"/>
+  <path d="M168 56 L163 90 Q158 121 139 129 L140 138 Q171 124 177 87 L182 52Z" fill="#c59243" stroke="none"/>
+  <path d="M79 45 Q127 38 179 46 Q186 47 185 55 Q184 63 177 63 Q127 56 81 62 Q73 63 71 55 Q70 48 79 45Z" fill="#f3cc76" stroke-width="7"/>
+  <path d="M82 48 Q115 44 143 47" fill="none" stroke="#ffedb8" stroke-width="5"/>
+  <path d="M92 72 L101 68 L108 80 L98 91Z" fill="#f8dc99" stroke="none"/>
+  <path d="M150 111 L162 99 L156 119 L146 127Z" fill="#b5863d" stroke="none"/>
+  <path d="M129 75 L137 89 L153 92 L142 104 L143 119 L128 111 L114 119 L115 103 L104 92 L120 89Z" fill="#fff0b8" stroke="#996d32" stroke-width="5"/>
+  <path d="M121 144 L120 166" fill="none" stroke="#f7d992" stroke-width="6"/>
+  <path d="M106 172 Q126 178 149 172 L160 181 L156 191 L100 191 L96 182Z" fill="#f1c86d" stroke-width="7"/>
+  <path d="M88 185 Q127 180 169 186 L177 205 Q177 212 169 214 Q129 219 86 214 Q79 212 80 205Z" fill="#637881" stroke-width="8"/>
+  <path d="M92 190 Q127 187 164 191 L168 199 Q127 202 86 199Z" fill="#9dafad" stroke="none"/>
+  <path d="M91 201 L99 208 L163 207" fill="none" stroke="#748b90" stroke-width="5"/>
+</g>
+</svg>
